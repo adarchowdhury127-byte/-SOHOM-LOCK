@@ -16,34 +16,33 @@ public class AppLockService extends AccessibilityService {
 
         String current = event.getPackageName().toString();
 
-        if (current.equals(getPackageName())) {
-            lastPackage = current;
-            return;
+        if (current.equals(lastPackage)) return;
+
+        lastPackage = current;
+
+        SharedPreferences prefs =
+            getSharedPreferences("SOHOM_LOCK", MODE_PRIVATE);
+
+        String unlocked = prefs.getString("unlocked_target", "");
+
+        if (!unlocked.isEmpty() && !current.equals(unlocked)) {
+            prefs.edit().remove("unlocked_target").apply();
         }
 
-        if (!current.equals(lastPackage)) {
-            lastPackage = current;
+        if (current.equals(getPackageName())) return;
 
-            SharedPreferences prefs =
-                getSharedPreferences("SOHOM_LOCK", MODE_PRIVATE);
+        Set<String> locked = prefs.getStringSet(
+            "locked_apps", new HashSet<>()
+        );
 
-            Set<String> locked = prefs.getStringSet(
-                "locked_apps", new HashSet<>()
+        if (locked.contains(current) && !current.equals(unlocked)) {
+            Intent intent = new Intent(this, LockActivity.class);
+            intent.putExtra("target_package", current);
+            intent.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK |
+                Intent.FLAG_ACTIVITY_CLEAR_TOP
             );
-
-            if (locked.contains(current)) {
-                String unlocked = prefs.getString("unlocked_target", "");
-
-                if (!current.equals(unlocked)) {
-                    Intent intent = new Intent(this, LockActivity.class);
-                    intent.putExtra("target_package", current);
-                    intent.addFlags(
-                        Intent.FLAG_ACTIVITY_NEW_TASK |
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP
-                    );
-                    startActivity(intent);
-                }
-            }
+            startActivity(intent);
         }
     }
 
