@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">SOHOM LOCK</string>
+    <string name="accessibility_description">Detects when a protected app opens so SOHOM LOCK can show its PIN screen.</string>
+</resources>
